@@ -97,6 +97,13 @@ void BPlusTree<T>::traverse()
     traverse(root);
 }
 
+// Function to get the size of the B+ Tree
+template <typename T>
+long long BPlusTree<T>::getSize()
+{
+    return size;
+}
+
 // Function to find the parent of the child node traverse from the current node
 template <typename T>
 BPlusNode<T>* BPlusTree<T>::findParent(BPlusNode<T>* current, BPlusNode<T>* child)
@@ -166,7 +173,7 @@ void BPlusTree<T>::insertNode(T data)
             while (i < current->n && data > current->keys[i])
                 ++i;
             // Move all the keys at the right one step ahead
-            for(int j = i; j < current->n; ++j)
+            for(int j = current->n - 1; j >= i; --j)
                 current->keys[j + 1] = current->keys[j];
             // Insert the new key at that position
             current->keys[i] = data;
@@ -191,7 +198,7 @@ void BPlusTree<T>::insertNode(T data)
             while(i < Max && data > tempNode[i])
                 i++;
             // Move all the key at the right of the position one step ahead
-            for(int j = i; j < Max; ++j)
+            for(int j = Max - 1; j >= i; --j)
                 tempNode[j + 1] = tempNode[j];
             // Insert the key at that position 
             tempNode[i] = data;
@@ -229,6 +236,7 @@ void BPlusTree<T>::insertNode(T data)
             }
         }
     }
+    size++;
 }
 
 // Function to insert a new key at the internal node in a B+ Tree
@@ -243,10 +251,10 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
         while(i < current->n && data > current->keys[i])
             i++;
         // Shift keys at the right of the position one step ahead
-        for(int j = i; j < current->n; ++j)
+        for(int j = current->n - 1; j >= i; --j)
             current->keys[j + 1] = current->keys[j];
         // Shift pointers at the right of the position one step ahead
-        for(int j = i + 1; j <= current->n; ++j)
+        for(int j = current->n; j >= i + 1; --j)
             current->ptr[j + 1] = current->ptr[j];
         // Insert new key and new child
         current->keys[i] = data;
@@ -272,9 +280,9 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
         while(i < Max && data > tempKey[i])
             i++;
         // Move all the keys and pointers at the right of the position one step ahead
-        for(int j = i; j < Max; ++j)
+        for(int j = Max - 1; j >= i; --j)
             tempKey[j + 1] = tempKey[j];
-        for(int j = i + 1; j <= Max; ++j)
+        for(int j = Max; j >= i + 1; --j)
             tempPtr[j + 1] = tempPtr[j];
         
         // Insert the new key and new child at the corresponding position
@@ -308,6 +316,98 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
     }
 }
 
+// Function to get the inorder predecessor of the current key
+template <typename T>
+T BPlusNode<T>::getPred(BPlusNode<T>* node)
+{
+    BPlusNode<T>* temp = node;
+    while (temp->leaf == false)
+        temp = temp->ptr[0];
+    return temp->keys[0];
+}
+
+// Function to get the inorder successor of the current key
+template <typename T>
+T BPlusNode<T>::getSucc(BPlusNode<T>* node)
+{
+    BPlusNode<T>* temp = node;
+    while(temp->leaf == false)
+        temp = temp->ptr[temp->n];
+    return temp->keys[temp->n - 1];
+}
+
+// Function to borrow a key from the left child node if the traversing child node has the minimum number of keys
+template <typename T>
+void BPlusNode<T>::borrowFromLeft(BPlusNode<T>* parent, int index)
+{
+    BPlusNode<T>* child = parent->ptr[index];
+    BPlusNode<T>* left_sibling = parent->ptr[index - 1];
+    // Move all the keys of the of the child one step ahead
+    for(int i = child->n - 1; i >= 0; --i)
+        child->keys[i + 1] = child->keys[i];
+    // Move all the pointer of the the child one step ahead if it is the internal node
+    if(child->leaf == false)
+    {
+        for(int i = child->n; i >= 0; --i)
+            child->ptr[i + 1] = child->ptr[i];
+    }
+    // Insert the keys to the child node
+    child->keys[0] = parent->keys[index - 1];
+    parent->keys[index - 1] = left_sibling->keys[left_sibling->n - 1];
+    // Move the last pointer of the left sibling to the current child
+    if(child->leaf == false)
+        child->ptr[0] = left_sibling->ptr[left_sibling->n];
+    // Update the size of 2 child node
+    child->n += 1;
+    left_sibling->n -= 1;
+    return;
+}
+
+// Function to borrow a key from a right child node to the traversing child node
+template <typename T>
+void BPlusNode<T>::borrowFromRight(BPlusNode<T>* parent, int index)
+{
+    BPlusNode<T>* child = parent->ptr[index];
+    BPlusNode<T>* right_sibling = parent->ptr[index + 1];
+    // Move the first key of the right sibling to the parent and a key in parent to child
+    child->keys[child->n] = parent->keys[index];
+    parent->keys[index] = right_sibling->keys[0];
+    // Move the first pointer of the right sibling to be the last pointer of the child if both are not leaf
+    if(child->leaf == false)
+        child->ptr[child->n + 1] = right_sibling->ptr[0];
+    // Move all the keys at the right sibling one step back
+    for(int i = 1; i < right_sibling->n; ++i)
+        right_sibling->keys[i - 1] = right_sibling->keys[i];
+    // Move all the pointers of the right sibling one step back
+    if(right_sibling->leaf == false)
+    {
+        for(int i = 1; i <= right_sibling->n; ++i)
+            right_sibling->ptr[i - 1] = right_sibling->ptr[i];
+    }
+    // Update the size of the 2 node
+    child->n += 1;
+    right_sibling->n -= 1;
+    return;
+}
+
+// Function to generally delete a node from the B+ Tree
+template <typename T>
+void BPlusTree<T>::delNode(T data)
+{
+    // Check if the tree is empty
+    if(root == NULL)
+    {
+        std::cout<<"The tree is empty!"<<std::endl;
+        return;
+    }
+    // Call the delete function for node
+    if(delNode(root, data))
+    {
+        size--;
+        std::cout<<"Node has been deleted successfully"<<std::endl;
+    }
+}
+
 
 int main()
 {
@@ -336,6 +436,8 @@ int main()
     std::cout<<"Node Gia is "<<(bplustree.searchTree("Gia") ? "" : "not ")<<"in the tree"<<std::endl;
     std::cout<<"Node Tran is "<<(bplustree.searchTree("Tran") ? "" : "not ")<<"in the tree"<<std::endl;
     std::cout<<"Node Chinh is "<<(bplustree.searchTree("Chinh") ? "" : "not ")<<"in the tree"<<std::endl;
-
+    // Get the size of the tree
+    std::cout<<"Size of the B+ Tree is: "<<bplustree.getSize()<<std::endl;
+    
     return 0;
 }
