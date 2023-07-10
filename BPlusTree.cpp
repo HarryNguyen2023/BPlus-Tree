@@ -11,7 +11,7 @@ BPlusNode<T>::BPlusNode(int _Max, bool _leaf)
     n = 0;
     // Allocate the memeory for 2 dynamic arrays in each node
     keys = new T[Max];
-    ptr = new BPlusNode<T>*[Max + 1]];
+    ptr = new BPlusNode<T>*[Max + 1];
 }
 
 // Function to inititate the B+ Tree
@@ -182,7 +182,7 @@ void BPlusTree<T>::insertNode(T data)
             // Create a new leaf node
             BPlusNode<T>* newleaf = new BPlusNode<T>(Max, true);
             // Create a temporary array to store the keys of the current node
-            std::vector<T> tempNode[Max + 1];
+            std::vector<T> tempNode(Max + 1);
             // Move all the keys of the current node into the temporary array
             for(int i = 0; i < Max; ++i)
                 tempNode[i] = current->keys[i];
@@ -258,7 +258,7 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
     {
         BPlusNode<T>* newInternal = new BPlusNode<T>(Max, false);
         // Create temporary arrays contain the keys and pointer of the current node before splitting
-        int tempKey[Max + 1];
+        std::vector<T> tempKey(Max + 1);
         BPlusNode<T>* tempPtr[Max + 2];
 
         // Move all the keys and pointer of the current node to the temporary arrays
@@ -303,8 +303,26 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
         }
         // Or continue recuresively call this function
         {
-            insertInternal(current->keys[current->n]; findParent(root, current), newInternal);
+            insertInternal(current->keys[current->n], findParent(root, current), newInternal);
         }
     }
 }
 
+
+int main()
+{
+    // Initiate the B+ tree
+    BPlusTree<int> bplustree(3);
+    // Add some new keys into the tree
+    int random[] = {5, 7, 9, 3, 2, 15, 25, 33, 21, 48, 30, 109, 67, 78, 55, 13, 100};
+    for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
+        bplustree.insertNode(random[i]);
+    // Traverse the tree
+    bplustree.traverse();
+    // Search for a few node inside the tree
+    std::cout<<"Node 25 is "<<(bplustree.searchTree(25) ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
+
+    return 0;
+}
