@@ -312,17 +312,30 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
 int main()
 {
     // Initiate the B+ tree
-    BPlusTree<int> bplustree(3);
-    // Add some new keys into the tree
-    int random[] = {5, 7, 9, 3, 2, 15, 25, 33, 21, 48, 30, 109, 67, 78, 55, 13, 100};
-    for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
+    // BPlusTree<int> bplustree(3);
+    // // Add some new keys into the tree
+    // int random[] = {5, 7, 9, 3, 2, 15, 25, 33, 21, 48, 30, 109, 67, 78, 55, 13, 100};
+    // for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
+    //     bplustree.insertNode(random[i]);
+    // // Traverse the tree
+    // bplustree.traverse();
+    // // Search for a few node inside the tree
+    // std::cout<<"Node 25 is "<<(bplustree.searchTree(25) ? "" : "not ")<<"in the tree"<<std::endl;
+    // std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
+    // std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
+
+    // String version 
+    BPlusTree<std::string> bplustree(3);
+    // Insert a few elements into the tree
+    std::vector<std::string> random = {"Gia", "Tran", "Khoi", "Khoa", "Ngoc", "Phu", "Duy", "Huy", "Minh", "An"};
+    for(int i = 0; i < random.size(); ++i)
         bplustree.insertNode(random[i]);
     // Traverse the tree
     bplustree.traverse();
-    // Search for a few node inside the tree
-    std::cout<<"Node 25 is "<<(bplustree.searchTree(25) ? "" : "not ")<<"in the tree"<<std::endl;
-    std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
-    std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
+    // Search for a few elements
+    std::cout<<"Node Gia is "<<(bplustree.searchTree("Gia") ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node Tran is "<<(bplustree.searchTree("Tran") ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node Chinh is "<<(bplustree.searchTree("Chinh") ? "" : "not ")<<"in the tree"<<std::endl;
 
     return 0;
 }

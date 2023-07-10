@@ -25,12 +25,13 @@ class BPlusTree
     BPlusNode<T>* root;
     int Max, size;
 
+    void traverse(BPlusNode<T>* node);
+    void insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* child);
+    BPlusNode<T>* findParent(BPlusNode<T>* current, BPlusNode<T>* child);
+
     public:
     BPlusTree(int _Max);
     bool searchTree(T data);
-    void traverse(BPlusNode<T>* node);
     void traverse();
-    BPlusNode<T>* findParent(BPlusNode<T>* current, BPlusNode<T>* child);
     void insertNode(T data);
-    void insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* child);
 };
