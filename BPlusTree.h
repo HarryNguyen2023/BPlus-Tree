@@ -18,9 +18,9 @@ class BPlusNode
     T getSucc(BPlusNode<T>* node);
     void borrowFromLeft(BPlusNode<T>* parent, int index);
     void borrowFromRight(BPlusNode<T>* parent, int index);
-    void merge(int index);
-    void rightRotate(BPlusNode<T>* node);
-    void leftRotate(BPlusNode<T>* node);
+    void merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BPlusNode<T>* succ);
+    void rightRotate(BPlusNode<T>* parent, int index);
+    void leftRotate(BPlusNode<T>* parent, int index);
     void delFromLeaf(int index);
     // Declare BPlusTree as the friend class
     friend class BPlusTree<T>;

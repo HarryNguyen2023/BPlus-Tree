@@ -390,6 +390,60 @@ void BPlusNode<T>::borrowFromRight(BPlusNode<T>* parent, int index)
     return;
 }
 
+// Function to merge the paprent node with the child node in case both child sibling has the minimum number of keys
+template <typename T>
+void BPlusNode<T>::merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BPlusNode<T>* succ)
+{
+    // Add all the keys of the successor to the right of the predecessor
+    for(int i = 0: i < succ->n; ++i)
+        pred->keys[i + pred->n] = succ->keys[i];
+    // Add all the pointers of the successor to the right of the predecessor
+    if(pred->leaf == false)
+    {
+        for(int i = 0; i <= succ->n; ++i)
+            pred->ptr[i + pred->n + 1] = succ->ptr[i];
+    }
+    // Delete the key at the parent node and move other keys at the right one step back
+    for(int i = index; i < parent->n; ++i)
+        parent->keys[i] = parent->keys[i + 1]; 
+    // Delete the pointer point to the successor node and move other pointers at the right one step back
+    for(int i = index + 1; i < parent->n + 1; ++i)
+        parent->ptr[i] = parent->ptr[i + 1];
+    // Update the size of the nodes
+    parent->n -= 1;
+    pred->n += succ->n;
+    // Delete the memory of the successor pointer
+    delete succ;
+    return;
+}
+
+// Function to left rotate and rebalance the tree
+template <typename T>
+void BPlusNode<T>::leftRotate(BPlusNode<T>* parent, int index)
+{
+    BPlusNode<T>* child = parent->ptr[0];
+    BPlusNode<T>* right_sibling = parent->ptr[i + 1];
+    // Move the key from the parent to the back of the child
+    child->keys[child->n] = parent->keys[index];
+    parent->keys[index] = right_sibling->keys[0];
+    // Move the first pointer of the right sibling to the back of the child node
+    if(right_sibling->leaf == false)
+        child->ptr[child->n + 1] = right_sibling->ptr[0];
+    // Move all the keys of the right sibling one step back
+    for(int i = 1; i < right_sibling->n; ++i)
+        right_sibling->keys[i - 1] = right_sibling->keys[i];
+    // Move all the pointer of the right sibling one step back
+    if(right_sibling->leaf == false)
+    {
+        for(int i = 1; i <= right_sibling->n; ++i)
+            right_sibling->ptr[i - 1] = right_sibling->ptr[i];
+    }
+    // Update the number of keys in each node
+    child->n += 1;
+    right_sibling->n -= 1;
+    return; 
+}
+
 // Function to generally delete a node from the B+ Tree
 template <typename T>
 void BPlusTree<T>::delNode(T data)
