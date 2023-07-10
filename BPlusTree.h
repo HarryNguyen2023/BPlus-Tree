@@ -30,4 +30,7 @@ class BPlusTree
     bool searchTree(T data);
     void traverse(BPlusNode<T>* node);
     void traverse();
+    BPlusNode<T>* findParent(BPlusNode<T>* current, BPlusNode<T>* child);
+    void insertNode(T data);
+    void insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* child);
 };
