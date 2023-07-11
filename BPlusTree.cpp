@@ -150,7 +150,7 @@ void BPlusTree<T>::insertNode(T data)
         while(current->leaf == false)
         {
             parent = current;
-            for(int i = 0; i < current->n + 1; ++i)
+            for(int i = 0; i < current->n; ++i)
             {
                 if(data < current->keys[i])
                 {
@@ -167,7 +167,7 @@ void BPlusTree<T>::insertNode(T data)
         }
         // Now we are at the leaf node to insert the new key
         // Case 1: the size of the node is smaller than maximum 
-        if(current->n < Max)
+        if(current->n < Max - 1)
         {
             int i = 0;
             while (i < current->n && data > current->keys[i])
@@ -189,25 +189,25 @@ void BPlusTree<T>::insertNode(T data)
             // Create a new leaf node
             BPlusNode<T>* newleaf = new BPlusNode<T>(Max, true);
             // Create a temporary array to store the keys of the current node
-            std::vector<T> tempNode(Max + 1);
+            std::vector<T> tempNode(Max);
             // Move all the keys of the current node into the temporary array
-            for(int i = 0; i < Max; ++i)
+            for(int i = 0; i < Max - 1; ++i)
                 tempNode[i] = current->keys[i];
             // Find the position of the key to be inserted
             int i = 0;
-            while(i < Max && data > tempNode[i])
+            while(i < Max - 1 && data > tempNode[i])
                 i++;
             // Move all the key at the right of the position one step ahead
-            for(int j = Max - 1; j >= i; --j)
+            for(int j = Max - 2; j >= i; --j)
                 tempNode[j + 1] = tempNode[j];
             // Insert the key at that position 
             tempNode[i] = data;
             // Update the size of the current as well as the new leaf node
-            current->n = (Max + 1) / 2;
-            newleaf->n = (Max + 1) - current->n;
+            current->n = Max / 2;
+            newleaf->n = Max - current->n;
             // Update the poiter of both the current and the new leaf
-            current->ptr[current->n] = newleaf;
             newleaf->ptr[newleaf->n] = current->ptr[Max];
+            current->ptr[current->n] = newleaf;
             current->ptr[newleaf->n] = current->ptr[Max];
             current->ptr[Max] = NULL;
             // Keep (m - 1)/2 keys at the current node
@@ -244,7 +244,7 @@ template <typename T>
 void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* child)
 {
     // Case 1: The node has fewer than the maximum number of key
-    if(current->n < Max)
+    if(current->n < Max - 1)
     {
         // Find the position to insert the new key
         int i = 0;
@@ -266,8 +266,8 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
     {
         BPlusNode<T>* newInternal = new BPlusNode<T>(Max, false);
         // Create temporary arrays contain the keys and pointer of the current node before splitting
-        std::vector<T> tempKey(Max + 1);
-        BPlusNode<T>* tempPtr[Max + 2];
+        std::vector<T> tempKey(Max);
+        BPlusNode<T>* tempPtr[Max + 1];
 
         // Move all the keys and pointer of the current node to the temporary arrays
         for(int i = 0; i < current->n; ++i)
@@ -277,12 +277,12 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
 
         // Find the position to insert the new key and new child into the temporary arrays
         int i = 0;
-        while(i < Max && data > tempKey[i])
+        while(i < Max - 1 && data > tempKey[i])
             i++;
         // Move all the keys and pointers at the right of the position one step ahead
-        for(int j = Max - 1; j >= i; --j)
+        for(int j = Max - 2; j >= i; --j)
             tempKey[j + 1] = tempKey[j];
-        for(int j = Max; j >= i + 1; --j)
+        for(int j = Max - 1; j >= i + 1; --j)
             tempPtr[j + 1] = tempPtr[j];
         
         // Insert the new key and new child at the corresponding position
@@ -290,8 +290,8 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
         tempPtr[i + 1] = child;
 
         // Update the size of the 2 nodes
-        current->n = (Max + 1) / 2;
-        newInternal->n = Max - (Max + 1) / 2;
+        current->n = Max / 2;
+        newInternal->n = (Max - 1) - current->n;
 
         // Move the haft larger keys and pointer to the new internal node
         for(int j = 0; j < newInternal->n; ++j)
@@ -303,14 +303,14 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
         if(current == root)
         {
             BPlusNode<T>* newRoot = new BPlusNode<T>(Max, false);
-            newRoot->n = 0;
+            newRoot->n = 1;
             newRoot->keys[0] = current->keys[current->n];
             newRoot->ptr[0] = current;
             newRoot->ptr[1] = newInternal;
             root = newRoot;
         }
         // Or continue recuresively call this function
-        {
+        else{
             insertInternal(current->keys[current->n], findParent(root, current), newInternal);
         }
     }
@@ -318,7 +318,7 @@ void BPlusTree<T>::insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* c
 
 // Function to get the inorder predecessor of the current key
 template <typename T>
-T BPlusNode<T>::getPred(BPlusNode<T>* node)
+T BPlusTree<T>::getPred(BPlusNode<T>* node)
 {
     BPlusNode<T>* temp = node;
     while (temp->leaf == false)
@@ -328,7 +328,7 @@ T BPlusNode<T>::getPred(BPlusNode<T>* node)
 
 // Function to get the inorder successor of the current key
 template <typename T>
-T BPlusNode<T>::getSucc(BPlusNode<T>* node)
+T BPlusTree<T>::getSucc(BPlusNode<T>* node)
 {
     BPlusNode<T>* temp = node;
     while(temp->leaf == false)
@@ -338,7 +338,7 @@ T BPlusNode<T>::getSucc(BPlusNode<T>* node)
 
 // Function to borrow a key from the left child node if the traversing child node has the minimum number of keys
 template <typename T>
-void BPlusNode<T>::borrowFromLeft(BPlusNode<T>* parent, int index)
+void BPlusTree<T>::borrowFromLeft(BPlusNode<T>* parent, int index)
 {
     BPlusNode<T>* child = parent->ptr[index];
     BPlusNode<T>* left_sibling = parent->ptr[index - 1];
@@ -365,7 +365,7 @@ void BPlusNode<T>::borrowFromLeft(BPlusNode<T>* parent, int index)
 
 // Function to borrow a key from a right child node to the traversing child node
 template <typename T>
-void BPlusNode<T>::borrowFromRight(BPlusNode<T>* parent, int index)
+void BPlusTree<T>::borrowFromRight(BPlusNode<T>* parent, int index)
 {
     BPlusNode<T>* child = parent->ptr[index];
     BPlusNode<T>* right_sibling = parent->ptr[index + 1];
@@ -392,7 +392,7 @@ void BPlusNode<T>::borrowFromRight(BPlusNode<T>* parent, int index)
 
 // Function to merge the paprent node with the child node in case both child sibling has the minimum number of keys
 template <typename T>
-void BPlusNode<T>::merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BPlusNode<T>* succ)
+void BPlusTree<T>::merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BPlusNode<T>* succ)
 {
     // Add all the keys of the successor to the right of the predecessor
     for(int i = 0; i < succ->n; ++i)
@@ -417,83 +417,13 @@ void BPlusNode<T>::merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BP
     return;
 }
 
-// Function to left rotate and rebalance the tree
-template <typename T>
-void BPlusNode<T>::leftRotate(BPlusNode<T>* parent, int index)
-{
-    BPlusNode<T>* child = parent->ptr[index];
-    BPlusNode<T>* right_sibling = parent->ptr[index + 1];
-    // Move the key from the parent to the back of the child
-    child->keys[child->n] = parent->keys[index];
-    parent->keys[index] = right_sibling->keys[0];
-    // Move the first pointer of the right sibling to the back of the child node
-    if(right_sibling->leaf == false)
-        child->ptr[child->n + 1] = right_sibling->ptr[0];
-    // Move all the keys of the right sibling one step back
-    for(int i = 1; i < right_sibling->n; ++i)
-        right_sibling->keys[i - 1] = right_sibling->keys[i];
-    // Move all the pointer of the right sibling one step back
-    if(right_sibling->leaf == false)
-    {
-        for(int i = 1; i <= right_sibling->n; ++i)
-            right_sibling->ptr[i - 1] = right_sibling->ptr[i];
-    }
-    // Update the number of keys in each node
-    child->n += 1;
-    right_sibling->n -= 1;
-    return; 
-}
-
-template <typename T>
-void BPlusNode<T>::rightRotate(BPlusNode<T>* parent, int index)
-{
-    BPlusNode<T>* child = parent->ptr[index];
-    BPlusNode<T>* left_sibling = parent->ptr[index - 1];
-    // Move the keys and pointer of the child one step ahead to spare space for the new key and child
-    for(int i = child->n - 1; i >= 0; --i)
-        child->keys[i + 1] = child->keys[i];
-    if(child->leaf == false)
-    {
-        for(int i = child->n; i >= 0; --i)
-            child->ptr[i + 1] = child->ptr[i];
-    }
-    // Move a key from the parent node to the child node and replace it with the last key of the left sibling
-    child->keys[0] = parent->keys[i - 1];
-    parent->keys[i - 1] = left_sibling->keys[left_sibling->n - 1];
-    // Move the last pointer of the left sibling to be the first pointer of child if both are not leaf
-    if(child->leaf == false)
-        child->ptr[0] = left_sibling->ptr[left_sibling->n];
-    // Update the size of the nodes
-    child->n += 1;
-    left_sibling->n -= 1;
-    return;
-}
-
-// Function to generally delete a node from the B+ Tree
-template <typename T>
-void BPlusTree<T>::delNode(T data)
-{
-    // Check if the tree is empty
-    if(root == NULL)
-    {
-        std::cout<<"The tree is empty!"<<std::endl;
-        return;
-    }
-    // Call the delete function for node
-    if(delNode(root, data))
-    {
-        size--;
-        std::cout<<"Node has been deleted successfully"<<std::endl;
-    }
-}
-
 // Function to delete a key at a leaf node in B+ Tree
 template <typename T>
-void BPlusTree<T>::delFromLeaf(T data, BPlusNode<T>* node)
+void BPlusTree<T>::delFromLeaf(BPlusNode<T>* node, T data)
 {
     // Check if this is a leaf node
-    if(node->leaf == false)
-        return;
+    // if(node->leaf == false)
+    //     return;
     // Find the key to be deleted position in the node
     int i;
     for(i = 0; i < node->n; ++i)
@@ -513,38 +443,178 @@ void BPlusTree<T>::delFromLeaf(T data, BPlusNode<T>* node)
     // Case violate the minimum number of key
     BPlusNode<T>* parent = findParent(root, node);
     // Get the position of the leaf child node in the parent node
+    for(i = 0; i <= parent->n; ++i)
+    {
+        if(parent->ptr[i] == node)
+            return;
+    }
+    // Check if the left child has more than the minimum number of keys and borrow from it
+    if(i > 0 && parent->ptr[i - 1]->n > Max / 2)
+        borrowFromLeft(parent, i);
+    // Case the right child node has more than the minimum number of keys, borrow from it
+    else if(i < parent->n && parent->ptr[i + 1]->n > Max / 2)
+        borrowFromRight(parent, i);
+    else
+    {
+        if(i == parent->n)
+            i--;
+     
+        merge(parent, i, parent->ptr[i], parent->ptr[i + 1]);
+    }
+}
 
+// Function to actively fill the internal node if it has the minimum number of keys before traverse to it
+template <typename T>
+void BPlusTree<T>::fix(BPlusNode<T>* temp, int index)
+{
+    // Get a key from the left child sibling if is has more than the minimum number of key
+    if(index > 0 && temp->ptr[index - 1]->n > Max / 2)
+        borrowFromLeft(temp, index);
+    else if(index < temp->n && temp->ptr[index + 1]->n > Max / 2)
+        borrowFromRight(temp, index);
+    else
+    {
+        if(index == temp->n)
+            index--;
+        merge(temp, index, temp->ptr[index], temp->ptr[index + 1]);
+    }
+}
+
+// Function to delete a key from the B+ Tree
+template <typename T>
+bool BPlusTree<T>::delNode(BPlusNode<T>* node, T data)
+{
+    // Find the position of the key in the current node
+    int i = 0;
+    while (i < node->n && data > node->keys[i])
+        ++i;
+    // Case the key is at the current node
+    if(i < node->n && node->keys[i] == data)
+    {
+        // Check if the current node is at leaf
+        if(node->leaf)
+            delFromLeaf(node ,data);       
+        else
+        {
+            // Borrow a key from the left node if it has more than the minimum number of keys
+            // if(node->ptr[i]->n > Max / 2)
+            // {
+            //     T pred = getPred(node->ptr[i]);
+            //     node->keys[i] = pred;
+            //     std::cout<<"Node predecessor: "<<pred<<std::endl;
+            //     return delNode(node->ptr[i], data);
+            // }
+            // Else borrow a key from the right node if it has more than the minimum number of key
+            if(node->ptr[i + 1]->n > Max / 2)
+            {
+                T succ = getSucc(node->ptr[i + 1]);
+                node->keys[i] = succ;
+                std::cout<<"Node sucessor: "<<succ<<std::endl;
+                return delNode(node->ptr[i + 1], data);
+            }
+            // Else if both sibling child has the minimum number of key, merge one with the parent
+            else
+            {
+                merge(node, i, node->ptr[i], node->ptr[i + 1]);
+                return delNode(node->ptr[i], data);
+            }
+        }
+        if(node == root && node->n == 0)
+        {
+            BPlusNode<T>* temp = root;
+            if(root->leaf)
+                root = NULL;
+            else
+                root = root->ptr[0];
+            delete temp;
+        }
+    }
+    else
+    {
+        if(node->leaf)
+            return false;
+        else
+        {
+            // Check if the the key to be deleted in the last child
+            bool last = (i == node->n) ? true : false;
+            // If the child node has the minimum number of key, actively fix that
+            if(node->ptr[i]->n <= Max / 2)
+                fix(node, i);
+            if(last && i > node->n)
+                return delNode(node->ptr[i - 1], data);
+            else
+                return delNode(node->ptr[i], data);
+        }
+    }
+    return true;
+}
+
+// Function to generally delete the key from the B+ Tree
+template <typename T>
+void BPlusTree<T>::delNode(T data)
+{
+    // Check if the tree is empty
+    if(root == NULL)
+    {
+        std::cout<<"The tree is empty!"<<std::endl;
+        return;
+    }
+    if(delNode(root, data))
+    {
+        std::cout<<"Deleted successfully!"<<std::endl;
+        size--;
+    }
+    else
+    {
+        std::cout<<"Deleted FAILED!"<<std::endl;
+    }
 }
 
 int main()
 {
     // Initiate the B+ tree
-    // BPlusTree<int> bplustree(3);
-    // // Add some new keys into the tree
-    // int random[] = {5, 7, 9, 3, 2, 15, 25, 33, 21, 48, 30, 109, 67, 78, 55, 13, 100};
-    // for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
-    //     bplustree.insertNode(random[i]);
-    // // Traverse the tree
-    // bplustree.traverse();
-    // // Search for a few node inside the tree
-    // std::cout<<"Node 25 is "<<(bplustree.searchTree(25) ? "" : "not ")<<"in the tree"<<std::endl;
-    // std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
-    // std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
-
-    // String version 
-    BPlusTree<std::string> bplustree(3);
-    // Insert a few elements into the tree
-    std::vector<std::string> random = {"Gia", "Tran", "Khoi", "Khoa", "Ngoc", "Phu", "Duy", "Huy", "Minh", "An"};
-    for(int i = 0; i < random.size(); ++i)
+    BPlusTree<int> bplustree(3);
+    // Add some new keys into the tree
+    //int random[] = {5, 7, 9, 3, 2, 15, 25, 33, 21, 48, 30, 109, 67, 78, 55, 13, 100};
+    int random[] = {5, 15, 25, 35, 45};
+    for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
         bplustree.insertNode(random[i]);
     // Traverse the tree
     bplustree.traverse();
-    // Search for a few elements
-    std::cout<<"Node Gia is "<<(bplustree.searchTree("Gia") ? "" : "not ")<<"in the tree"<<std::endl;
-    std::cout<<"Node Tran is "<<(bplustree.searchTree("Tran") ? "" : "not ")<<"in the tree"<<std::endl;
-    std::cout<<"Node Chinh is "<<(bplustree.searchTree("Chinh") ? "" : "not ")<<"in the tree"<<std::endl;
-    // Get the size of the tree
-    std::cout<<"Size of the B+ Tree is: "<<bplustree.getSize()<<std::endl;
-    
+    // Search for a few node inside the tree
+    std::cout<<"Node 25 is "<<(bplustree.searchTree(25) ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
+    // Delete some elements in the tree
+    // bplustree.delNode(25);
+    // bplustree.delNode(33);
+    // bplustree.delNode(530);
+    // // Traverse the tree
+    // bplustree.traverse();
+
+    // String version 
+    // BPlusTree<std::string> bplustree(3);
+    // // Insert a few elements into the tree
+    // std::vector<std::string> random = {"Gia", "Tran", "Khoi", "Khoa", "Ngoc", "Phu", "Duy", "Huy", "Minh", "An"};
+    // for(int i = 0; i < random.size(); ++i)
+    //     bplustree.insertNode(random[i]);
+    // // Traverse the tree
+    // bplustree.traverse();
+    // // Search for a few elements
+    // std::cout<<"Node Gia is "<<(bplustree.searchTree("Gia") ? "" : "not ")<<"in the tree"<<std::endl;
+    // std::cout<<"Node Tran is "<<(bplustree.searchTree("Tran") ? "" : "not ")<<"in the tree"<<std::endl;
+    // std::cout<<"Node Chinh is "<<(bplustree.searchTree("Chinh") ? "" : "not ")<<"in the tree"<<std::endl;
+    // // Get the size of the tree
+    // std::cout<<"Size of the B+ Tree is: "<<bplustree.getSize()<<std::endl;
+    // // Delete a few key in the tree
+    // bplustree.delNode("Ngoc");
+    // bplustree.delNode("Phu");
+    // bplustree.delNode("Chinh");
+    // // Travese the tree
+    // bplustree.traverse();
+    // // // Seach for a few node
+    // std::cout<<"Node Ngoc is "<<(bplustree.searchTree("Ngoc") ? "" : "not ")<<"in the tree"<<std::endl;
+    // std::cout<<"Node Phu is "<<(bplustree.searchTree("Phu") ? "" : "not ")<<"in the tree"<<std::endl;
+
     return 0;
 }
