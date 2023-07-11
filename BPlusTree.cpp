@@ -395,7 +395,7 @@ template <typename T>
 void BPlusNode<T>::merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BPlusNode<T>* succ)
 {
     // Add all the keys of the successor to the right of the predecessor
-    for(int i = 0: i < succ->n; ++i)
+    for(int i = 0; i < succ->n; ++i)
         pred->keys[i + pred->n] = succ->keys[i];
     // Add all the pointers of the successor to the right of the predecessor
     if(pred->leaf == false)
@@ -421,8 +421,8 @@ void BPlusNode<T>::merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BP
 template <typename T>
 void BPlusNode<T>::leftRotate(BPlusNode<T>* parent, int index)
 {
-    BPlusNode<T>* child = parent->ptr[0];
-    BPlusNode<T>* right_sibling = parent->ptr[i + 1];
+    BPlusNode<T>* child = parent->ptr[index];
+    BPlusNode<T>* right_sibling = parent->ptr[index + 1];
     // Move the key from the parent to the back of the child
     child->keys[child->n] = parent->keys[index];
     parent->keys[index] = right_sibling->keys[0];
@@ -444,6 +444,31 @@ void BPlusNode<T>::leftRotate(BPlusNode<T>* parent, int index)
     return; 
 }
 
+template <typename T>
+void BPlusNode<T>::rightRotate(BPlusNode<T>* parent, int index)
+{
+    BPlusNode<T>* child = parent->ptr[index];
+    BPlusNode<T>* left_sibling = parent->ptr[index - 1];
+    // Move the keys and pointer of the child one step ahead to spare space for the new key and child
+    for(int i = child->n - 1; i >= 0; --i)
+        child->keys[i + 1] = child->keys[i];
+    if(child->leaf == false)
+    {
+        for(int i = child->n; i >= 0; --i)
+            child->ptr[i + 1] = child->ptr[i];
+    }
+    // Move a key from the parent node to the child node and replace it with the last key of the left sibling
+    child->keys[0] = parent->keys[i - 1];
+    parent->keys[i - 1] = left_sibling->keys[left_sibling->n - 1];
+    // Move the last pointer of the left sibling to be the first pointer of child if both are not leaf
+    if(child->leaf == false)
+        child->ptr[0] = left_sibling->ptr[left_sibling->n];
+    // Update the size of the nodes
+    child->n += 1;
+    left_sibling->n -= 1;
+    return;
+}
+
 // Function to generally delete a node from the B+ Tree
 template <typename T>
 void BPlusTree<T>::delNode(T data)
@@ -462,6 +487,34 @@ void BPlusTree<T>::delNode(T data)
     }
 }
 
+// Function to delete a key at a leaf node in B+ Tree
+template <typename T>
+void BPlusTree<T>::delFromLeaf(T data, BPlusNode<T>* node)
+{
+    // Check if this is a leaf node
+    if(node->leaf == false)
+        return;
+    // Find the key to be deleted position in the node
+    int i;
+    for(i = 0; i < node->n; ++i)
+    {
+        if(node->keys[i] == data)
+            break;
+    }
+    // Move all the keys at the right of the position one step back
+    for(int j = i; j < node->n; ++j)
+        node->keys[i] = node->keys[i + 1];
+    // Update the size of the node after remove the key
+    node->n -= 1;
+    // Check if the node does not violate the minimum number of key
+    if(node == root || node->n >= Max / 2)
+        return;
+    
+    // Case violate the minimum number of key
+    BPlusNode<T>* parent = findParent(root, node);
+    // Get the position of the leaf child node in the parent node
+
+}
 
 int main()
 {

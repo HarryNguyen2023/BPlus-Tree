@@ -21,7 +21,6 @@ class BPlusNode
     void merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BPlusNode<T>* succ);
     void rightRotate(BPlusNode<T>* parent, int index);
     void leftRotate(BPlusNode<T>* parent, int index);
-    void delFromLeaf(int index);
     // Declare BPlusTree as the friend class
     friend class BPlusTree<T>;
 };
@@ -38,7 +37,7 @@ class BPlusTree
     void insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* child);
     BPlusNode<T>* findParent(BPlusNode<T>* current, BPlusNode<T>* child);
     bool delNode(BPlusNode<T>* node, T data);
-
+    void delFromLeaf(T data, BPlusNode<T>* node);
     public:
     BPlusTree(int _Max);
     bool searchTree(T data);
