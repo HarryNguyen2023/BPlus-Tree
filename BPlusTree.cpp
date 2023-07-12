@@ -434,29 +434,29 @@ void BPlusTree<T>::delFromLeaf(BPlusNode<T>* node, int index)
         node->n -= 1;
         return;
     }
-    // Case violate the minimum number of key
-    BPlusNode<T>* parent = findParent(root, node); 
-    // Get the position of the leaf child node in the parent node
-    int i;
-    for(i = 0; i <= parent->n; ++i)
-    {
-        if(parent->ptr[i] == node)
-            break;
-    }
-    std::cout<<"i value: "<<i<<std::endl;
-    // Check if the left child has more than the minimum number of keys and borrow from it
-    if(i > 0 && parent->ptr[i - 1]->n > Max / 2)
-        borrowFromLeft(parent, i);
-    // Case the right child node has more than the minimum number of keys, borrow from it
-    else if(i < parent->n && parent->ptr[i + 1]->n > Max / 2)
-        borrowFromRight(parent, i);
-    else
-    {
-        if(i == parent->n)
-            i--; 
-        merge(parent, i, parent->ptr[i], parent->ptr[i + 1]);
-    }
-    delFromLeaf(node, index);
+    // // Case violate the minimum number of key
+    // BPlusNode<T>* parent = findParent(root, node); 
+    // // Get the position of the leaf child node in the parent node
+    // int i;
+    // for(i = 0; i <= parent->n; ++i)
+    // {
+    //     if(parent->ptr[i] == node)
+    //         break;
+    // }
+    // std::cout<<"i value: "<<i<<std::endl;
+    // // Check if the left child has more than the minimum number of keys and borrow from it
+    // if(i > 0 && parent->ptr[i - 1]->n > Max / 2)
+    //     borrowFromLeft(parent, i);
+    // // Case the right child node has more than the minimum number of keys, borrow from it
+    // else if(i < parent->n && parent->ptr[i + 1]->n > Max / 2)
+    //     borrowFromRight(parent, i);
+    // else
+    // {
+    //     if(i == parent->n)
+    //         i--; 
+    //     merge(parent, i, parent->ptr[i], parent->ptr[i + 1]);
+    // }
+    // delFromLeaf(node, index);
 }
 
 // Function to actively fill the internal node if it has the minimum number of keys before traverse to it
@@ -480,37 +480,38 @@ void BPlusTree<T>::fix(BPlusNode<T>* temp, int index)
 template <typename T>
 bool BPlusTree<T>::delNode(BPlusNode<T>* node, T data)
 {
-    // Find the position of the key in the current node
-    int i = 0;
-    while (i < node->n && data > node->keys[i])
-        ++i;
+    // Find the posindextion of the key in the current node
+    int index = 0;
+    while (index < node->n && data > node->keys[index])
+        ++index;
     // Case the key is at the current node
-    if(i < node->n && node->keys[i] == data)
+    if(index < node->n && node->keys[index] == data)
     {
         // Check if the current node is at leaf
         if(node->leaf)
-            delFromLeaf(node, i);       
+            delFromLeaf(node, index);  
+        // Case we find the key at the internal node     
         else
         {
             // Borrow a key from the right node if it has more than the minimum number of keys
-            if(node->ptr[i + 1]->n > Max / 2)
+            if(node->ptr[index + 1]->n > Max / 2)
             {
-                T succ = getSucc(node->ptr[i + 1]);
-                node->keys[i] = succ;
+                T succ = getSucc(node->ptr[index + 1]);
+                node->keys[index] = succ;
             }
             // Else borrow a key from the right node if it has more than the minimum number of key
-            else if(node->ptr[i]->n > Max / 2)
+            else if(node->ptr[index]->n > Max / 2)
             {
-                borrowFromLeft(node, i);
+                T pred = getPred(node->ptr[index]);
+                node->keys[index] = pred;
             }
             // Else if both sibling child has the minimum number of key, merge one with the parent
             else
-            {
-                merge(node, i, node->ptr[i], node->ptr[i + 1]);
-            }
-            return delNode(node->ptr[i + 1], data);
-        }
-        if(node == root && node->n == 0)
+                merge(node, index, node->ptr[index], node->ptr[index + 1]);
+            return delNode(node->ptr[index + 1], data);
+        }   
+            // Case the height of the tree is shrinked
+        if(node == root || root->n == 0)
         {
             BPlusNode<T>* temp = root;
             if(root->leaf)
@@ -518,7 +519,7 @@ bool BPlusTree<T>::delNode(BPlusNode<T>* node, T data)
             else
                 root = root->ptr[0];
             delete temp;
-        }
+        }   
     }
     else
     {
@@ -527,14 +528,14 @@ bool BPlusTree<T>::delNode(BPlusNode<T>* node, T data)
         else
         {
             // Check if the the key to be deleted in the last child
-            bool last = (i == node->n) ? true : false;
+            bool last = (index == node->n) ? true : false;
             // If the child node has the minimum number of key, actively fix that
-            if(node->ptr[i]->n <= Max / 2)
-                fix(node, i);
-            if(last && i > node->n)
-                return delNode(node->ptr[i - 1], data);
+            if(node->ptr[index]->n <= Max / 2)
+                fix(node, index);
+            if(last && index > node->n)
+                return delNode(node->ptr[index - 1], data);
             else
-                return delNode(node->ptr[i], data);
+                return delNode(node->ptr[index], data);
         }
     }
     return true;
@@ -562,9 +563,8 @@ void BPlusTree<T>::delNode(T data)
         size--;
     }
     else
-    {
         std::cout<<"Deleted FAILED!"<<std::endl;
-    }
+    return;
 }
 
 int main()
@@ -603,7 +603,7 @@ int main()
     // Get the size of the tree
     std::cout<<"Size of the B+ Tree is: "<<bplustree.getSize()<<std::endl;
     // Delete a few key in the tree
-    bplustree.delNode("Ngoc");
+    bplustree.delNode("An");
     bplustree.delNode("Phu");
     bplustree.delNode("Chinh");
     // Travese the tree
