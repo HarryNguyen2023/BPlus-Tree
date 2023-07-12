@@ -29,7 +29,7 @@ class BPlusTree
     void traverse(BPlusNode<T>* node);
     void insertInternal(T data, BPlusNode<T>* current, BPlusNode<T>* child);
     BPlusNode<T>* findParent(BPlusNode<T>* current, BPlusNode<T>* child);
-    void delFromLeaf(BPlusNode<T>* node, T data);
+    void delFromLeaf(BPlusNode<T>* node, int index);
     T getPred(BPlusNode<T>* node);
     T getSucc(BPlusNode<T>* node);
     void borrowFromLeft(BPlusNode<T>* parent, int index);
@@ -45,4 +45,6 @@ class BPlusTree
     void insertNode(T data);
     long long getSize();
     void delNode(T data);
+    //for debugging
+    void getRoot();
 };

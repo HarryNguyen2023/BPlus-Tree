@@ -110,7 +110,7 @@ BPlusNode<T>* BPlusTree<T>::findParent(BPlusNode<T>* current, BPlusNode<T>* chil
 {
     BPlusNode<T>* parent;
     // If the current node is already at leaf
-    if(current->leaf || current->ptr[0]->leaf)
+    if(current->leaf)
         return NULL;
     // Sequentially traverse the pointers of the current node to find the parent of the child node
     for(int i = 0; i <= current->n; ++i)
@@ -371,7 +371,7 @@ void BPlusTree<T>::borrowFromRight(BPlusNode<T>* parent, int index)
     BPlusNode<T>* right_sibling = parent->ptr[index + 1];
     // Move the first key of the right sibling to the parent and a key in parent to child
     child->keys[child->n] = parent->keys[index];
-    parent->keys[index] = right_sibling->keys[0];
+    parent->keys[index] = right_sibling->keys[1];
     // Move the first pointer of the right sibling to be the last pointer of the child if both are not leaf
     if(child->leaf == false)
         child->ptr[child->n + 1] = right_sibling->ptr[0];
@@ -419,35 +419,31 @@ void BPlusTree<T>::merge(BPlusNode<T>* parent, int index, BPlusNode<T>* pred, BP
 
 // Function to delete a key at a leaf node in B+ Tree
 template <typename T>
-void BPlusTree<T>::delFromLeaf(BPlusNode<T>* node, T data)
+void BPlusTree<T>::delFromLeaf(BPlusNode<T>* node, int index)
 {
     // Check if this is a leaf node
-    // if(node->leaf == false)
-    //     return;
-    // Find the key to be deleted position in the node
-    int i;
-    for(i = 0; i < node->n; ++i)
-    {
-        if(node->keys[i] == data)
-            break;
-    }
-    // Move all the keys at the right of the position one step back
-    for(int j = i; j < node->n; ++j)
-        node->keys[i] = node->keys[i + 1];
-    // Update the size of the node after remove the key
-    node->n -= 1;
-    // Check if the node does not violate the minimum number of key
-    if(node == root || node->n >= Max / 2)
+    if(node->leaf == false)
         return;
-    
+    // Find the key to be deleted position in the node
+    if(node->n > Max / 2)
+    {
+        // Move all the keys at the right of the position one step back
+        for(int j = index; j < node->n; ++j)
+            node->keys[j] = node->keys[j + 1];
+        // Update the size of the node after remove the key
+        node->n -= 1;
+        return;
+    }
     // Case violate the minimum number of key
-    BPlusNode<T>* parent = findParent(root, node);
+    BPlusNode<T>* parent = findParent(root, node); 
     // Get the position of the leaf child node in the parent node
+    int i;
     for(i = 0; i <= parent->n; ++i)
     {
         if(parent->ptr[i] == node)
-            return;
+            break;
     }
+    std::cout<<"i value: "<<i<<std::endl;
     // Check if the left child has more than the minimum number of keys and borrow from it
     if(i > 0 && parent->ptr[i - 1]->n > Max / 2)
         borrowFromLeft(parent, i);
@@ -457,10 +453,10 @@ void BPlusTree<T>::delFromLeaf(BPlusNode<T>* node, T data)
     else
     {
         if(i == parent->n)
-            i--;
-     
+            i--; 
         merge(parent, i, parent->ptr[i], parent->ptr[i + 1]);
     }
+    delFromLeaf(node, index);
 }
 
 // Function to actively fill the internal node if it has the minimum number of keys before traverse to it
@@ -493,31 +489,26 @@ bool BPlusTree<T>::delNode(BPlusNode<T>* node, T data)
     {
         // Check if the current node is at leaf
         if(node->leaf)
-            delFromLeaf(node ,data);       
+            delFromLeaf(node, i);       
         else
         {
-            // Borrow a key from the left node if it has more than the minimum number of keys
-            // if(node->ptr[i]->n > Max / 2)
-            // {
-            //     T pred = getPred(node->ptr[i]);
-            //     node->keys[i] = pred;
-            //     std::cout<<"Node predecessor: "<<pred<<std::endl;
-            //     return delNode(node->ptr[i], data);
-            // }
-            // Else borrow a key from the right node if it has more than the minimum number of key
+            // Borrow a key from the right node if it has more than the minimum number of keys
             if(node->ptr[i + 1]->n > Max / 2)
             {
                 T succ = getSucc(node->ptr[i + 1]);
                 node->keys[i] = succ;
-                std::cout<<"Node sucessor: "<<succ<<std::endl;
-                return delNode(node->ptr[i + 1], data);
+            }
+            // Else borrow a key from the right node if it has more than the minimum number of key
+            else if(node->ptr[i]->n > Max / 2)
+            {
+                borrowFromLeft(node, i);
             }
             // Else if both sibling child has the minimum number of key, merge one with the parent
             else
             {
                 merge(node, i, node->ptr[i], node->ptr[i + 1]);
-                return delNode(node->ptr[i], data);
             }
+            return delNode(node->ptr[i + 1], data);
         }
         if(node == root && node->n == 0)
         {
@@ -549,6 +540,12 @@ bool BPlusTree<T>::delNode(BPlusNode<T>* node, T data)
     return true;
 }
 
+template<typename T>
+void BPlusTree<T>::getRoot()
+{
+    std::cout<<"Number of keys: "<<root->n<<" and key 0: "<<root->ptr[0]->ptr[0]->keys[0]<<std::endl;
+}
+
 // Function to generally delete the key from the B+ Tree
 template <typename T>
 void BPlusTree<T>::delNode(T data)
@@ -575,8 +572,7 @@ int main()
     // Initiate the B+ tree
     BPlusTree<int> bplustree(3);
     // Add some new keys into the tree
-    //int random[] = {5, 7, 9, 3, 2, 15, 25, 33, 21, 48, 30, 109, 67, 78, 55, 13, 100};
-    int random[] = {5, 15, 25, 35, 45};
+    int random[] = {5, 15, 25, 35, 45, 20, 30, 55};
     for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
         bplustree.insertNode(random[i]);
     // Traverse the tree
@@ -586,11 +582,11 @@ int main()
     std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
     std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
     // Delete some elements in the tree
-    // bplustree.delNode(25);
-    // bplustree.delNode(33);
-    // bplustree.delNode(530);
-    // // Traverse the tree
-    // bplustree.traverse();
+    bplustree.delNode(20);
+    bplustree.delNode(5);
+    bplustree.delNode(530);
+    // Traverse the tree
+    bplustree.traverse();
 
     // String version 
     // BPlusTree<std::string> bplustree(3);
