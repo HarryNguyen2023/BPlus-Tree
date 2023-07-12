@@ -541,12 +541,6 @@ bool BPlusTree<T>::delNode(BPlusNode<T>* node, T data)
     return true;
 }
 
-template<typename T>
-void BPlusTree<T>::getRoot()
-{
-    std::cout<<"Number of keys: "<<root->n<<" and key 0: "<<root->ptr[0]->ptr[0]->keys[0]<<std::endl;
-}
-
 // Function to generally delete the key from the B+ Tree
 template <typename T>
 void BPlusTree<T>::delNode(T data)
