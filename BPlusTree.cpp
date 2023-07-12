@@ -570,47 +570,47 @@ void BPlusTree<T>::delNode(T data)
 int main()
 {
     // Initiate the B+ tree
-    BPlusTree<int> bplustree(3);
-    // Add some new keys into the tree
-    int random[] = {5, 15, 25, 35, 45, 20, 30, 55};
-    for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
-        bplustree.insertNode(random[i]);
-    // Traverse the tree
-    bplustree.traverse();
-    // Search for a few node inside the tree
-    std::cout<<"Node 25 is "<<(bplustree.searchTree(25) ? "" : "not ")<<"in the tree"<<std::endl;
-    std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
-    std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
-    // Delete some elements in the tree
-    bplustree.delNode(20);
-    bplustree.delNode(5);
-    bplustree.delNode(530);
-    // Traverse the tree
-    bplustree.traverse();
-
-    // String version 
-    // BPlusTree<std::string> bplustree(3);
-    // // Insert a few elements into the tree
-    // std::vector<std::string> random = {"Gia", "Tran", "Khoi", "Khoa", "Ngoc", "Phu", "Duy", "Huy", "Minh", "An"};
-    // for(int i = 0; i < random.size(); ++i)
+    // BPlusTree<int> bplustree(3);
+    // // Add some new keys into the tree
+    // int random[] = {5, 15, 25, 35, 45, 20, 30, 40, 55};
+    // for(int i = 0; i < sizeof(random)/sizeof(int); ++i)
     //     bplustree.insertNode(random[i]);
     // // Traverse the tree
     // bplustree.traverse();
-    // // Search for a few elements
-    // std::cout<<"Node Gia is "<<(bplustree.searchTree("Gia") ? "" : "not ")<<"in the tree"<<std::endl;
-    // std::cout<<"Node Tran is "<<(bplustree.searchTree("Tran") ? "" : "not ")<<"in the tree"<<std::endl;
-    // std::cout<<"Node Chinh is "<<(bplustree.searchTree("Chinh") ? "" : "not ")<<"in the tree"<<std::endl;
-    // // Get the size of the tree
-    // std::cout<<"Size of the B+ Tree is: "<<bplustree.getSize()<<std::endl;
-    // // Delete a few key in the tree
-    // bplustree.delNode("Ngoc");
-    // bplustree.delNode("Phu");
-    // bplustree.delNode("Chinh");
-    // // Travese the tree
+    // // Search for a few node inside the tree
+    // std::cout<<"Node 25 is "<<(bplustree.searchTree(25) ? "" : "not ")<<"in the tree"<<std::endl;
+    // std::cout<<"Node 48 is "<<(bplustree.searchTree(48) ? "" : "not ")<<"in the tree"<<std::endl;
+    // std::cout<<"Node 66 is "<<(bplustree.searchTree(66) ? "" : "not ")<<"in the tree"<<std::endl;
+    // // Delete some elements in the tree
+    // bplustree.delNode(20);
+    // bplustree.delNode(5);
+    // // bplustree.delNode(40);
+    // // Traverse the tree
     // bplustree.traverse();
-    // // // Seach for a few node
-    // std::cout<<"Node Ngoc is "<<(bplustree.searchTree("Ngoc") ? "" : "not ")<<"in the tree"<<std::endl;
-    // std::cout<<"Node Phu is "<<(bplustree.searchTree("Phu") ? "" : "not ")<<"in the tree"<<std::endl;
+
+    // String version 
+    BPlusTree<std::string> bplustree(3);
+    // Insert a few elements into the tree
+    std::vector<std::string> random = {"Gia", "Tran", "Khoi", "Khoa", "Ngoc", "Phu", "Duy", "Huy", "Minh", "An"};
+    for(int i = 0; i < random.size(); ++i)
+        bplustree.insertNode(random[i]);
+    // Traverse the tree
+    bplustree.traverse();
+    // Search for a few elements
+    std::cout<<"Node Gia is "<<(bplustree.searchTree("Gia") ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node Tran is "<<(bplustree.searchTree("Tran") ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node Chinh is "<<(bplustree.searchTree("Chinh") ? "" : "not ")<<"in the tree"<<std::endl;
+    // Get the size of the tree
+    std::cout<<"Size of the B+ Tree is: "<<bplustree.getSize()<<std::endl;
+    // Delete a few key in the tree
+    bplustree.delNode("Ngoc");
+    bplustree.delNode("Phu");
+    bplustree.delNode("Chinh");
+    // Travese the tree
+    bplustree.traverse();
+    // // Seach for a few node
+    std::cout<<"Node Ngoc is "<<(bplustree.searchTree("Ngoc") ? "" : "not ")<<"in the tree"<<std::endl;
+    std::cout<<"Node Phu is "<<(bplustree.searchTree("Phu") ? "" : "not ")<<"in the tree"<<std::endl;
 
     return 0;
 }
