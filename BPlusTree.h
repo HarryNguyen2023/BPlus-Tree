@@ -45,4 +45,6 @@ class BPlusTree
     void insertNode(T data);
     long long getSize();
     void delNode(T data);
+    //for debugging
+    void getRoot();
 };
