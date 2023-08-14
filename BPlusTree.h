@@ -1,3 +1,6 @@
+#ifndef BPLUS_TREE_H
+#define BPLUS_TREE_H
+
 // Forward declaration of the BPusTree class
 template <class T>
 class BPlusTree;
@@ -48,3 +51,5 @@ class BPlusTree
     //for debugging
     void getRoot();
 };
+
+#endif
